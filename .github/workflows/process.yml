@@ -2,8 +2,8 @@
 
   on:
     push:
-    #schedule:
-    #  - cron: "*/60 * * * *"
+    schedule:
+      - cron: "0 1-23/6 * * *"
 
   jobs:
     build:
