@@ -1,0 +1,32 @@
+  name: process
+
+  on:
+    push:
+    #schedule:
+    #  - cron: "*/60 * * * *"
+
+  jobs:
+    build:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          id: checkout
+          uses: actions/checkout@v2
+
+        - name: Process
+          id: process
+          uses: ./.github/actions/process-action
+
+        - name: Release
+          id: release
+          uses: "marvinpinto/action-automatic-releases@latest"
+          with:
+            repo_token: "${{ secrets.GITHUB_TOKEN }}"
+            automatic_release_tag: "latest"
+            prerelease: true
+            title: "Development Build"
+            files: |
+              jhu.csv
+              countries.csv
+              states.csv
+              counties.csv
