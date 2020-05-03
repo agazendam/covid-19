@@ -103,6 +103,9 @@ JHU <- JHU[!(JHU$Country_Region=="Puerto Rico"),]
 #Clean up US
 #US has a separate datapoint for Recovered. This is being dropped due to poor quality.
 JHU <- JHU[!(JHU$Province_State=="Recovered" & JHU$Country_Region=="US"),]
+JHU[JHU$Province_State=="United States Virgin Islands",]$Province_State <- "Virgin Islands"
+JHU[JHU$Province_State=="Chicago",]$County_City <- "Cook"
+JHU[JHU$Province_State=="Chicago",]$Province_State <- "Illinois"
 JHU[JHU$Province_State=="New York City, NY",]$County_City <- "New York City"
 JHU[JHU$Province_State=="New York City, NY",]$Province_State <- "New York"
 JHU[JHU$Province_State=="New York County, NY",]$County_City <- "New York City"
@@ -426,6 +429,8 @@ JHU[JHU$Country_Region=="The Bahamas",]$Country_Region <- "Bahamas"
 JHU[JHU$Country_Region=="Bahamas, The",]$Country_Region <- "Bahamas"
 
 #Cleanup France
+JHU[JHU$Country_Region=="Martinique",]$Province_State <- "Martinique"
+JHU[JHU$Country_Region=="Martinique",]$Country_Region <- "France"
 JHU[JHU$Country_Region=="Saint Martin",]$Province_State <- "St Martin"
 JHU[JHU$Country_Region=="Saint Martin",]$Country_Region <- "France"
 JHU[JHU$Country_Region=="St. Martin",]$Province_State <- "St Martin"
@@ -474,6 +479,7 @@ JHU[JHU$Country_Region=="Palestine",]$Country_Region <- "West Bank and Gaza"
 JHU[JHU$Country_Region=="occupied Palestinian territory",]$Country_Region <- "West Bank and Gaza"
 
 #Cleanup United Kingdom. No County_City data has ever been available.
+JHU[JHU$Province_State=="Falkland Islands (Islas Malvinas)",]$Province_State <- "Falkland Islands (Malvinas)"
 JHU[JHU$Province_State=="UK",]$Country_Region <- "United Kingdom"
 JHU[JHU$Province_State=="UK",]$Province_State <- "United Kingdom"
 JHU[JHU$Province_State=="United Kingdom",]$Country_Region <- "United Kingdom"
@@ -524,18 +530,18 @@ scaling <-
         break
       }
       for (inside in c(inside_start:1)) {
-        if (places_place[[inside, input_column]] == 0) {
-          places_place[[outside, output_column]] <- NA
+        if (places_place[inside, input_column] == 0) {
+          places_place[outside, output_column] <- NA
           break
         }
-        if (places_place[[outside, input_column]] == 0) {
-          places_place[[outside, output_column]] <- NA
+        if (places_place[outside, input_column] == 0) {
+          places_place[outside, output_column] <- NA
           break
         }
-        if (places_place[[outside, input_column]] >= scale_factor * places_place[[inside, input_column]]) {
-          places_place[[outside, output_column]] <-
-            (outside - inside) - (places_place[[outside, input_column]] / scale_factor - places_place[[inside, input_column]]) /
-            (places_place[[inside + 1, input_column]] - places_place[[inside, input_column]])
+        if (places_place[outside, input_column] >= scale_factor * places_place[inside, input_column]) {
+          places_place[outside, output_column] <-
+            (outside - inside) - (places_place[outside, input_column] / scale_factor - places_place[inside, input_column]) /
+            (places_place[inside + 1, input_column] - places_place[inside, input_column])
           break
         }
       }
@@ -557,8 +563,8 @@ countries <-
   )
 countries <- merge(countries, pop)
 countries <- countries %>%
-  mutate(Confirmed_scaling = NA) %>%
-  mutate(Deaths_scaling = NA)
+  mutate(Confirmed_scaling = NA_real_) %>%
+  mutate(Deaths_scaling = NA_real_)
   # mutate(Values = NA) %>%
   # mutate(Xaxis = NA)
 unique_countries <- unique(countries$Country_Region)
@@ -579,8 +585,8 @@ states <-
     remove = FALSE
   )
 states <- states %>%
-  mutate(Confirmed_scaling = NA) %>%
-  mutate(Deaths_scaling = NA)
+  mutate(Confirmed_scaling = NA_real_) %>%
+  mutate(Deaths_scaling = NA_real_)
   # mutate(Values = NA) %>%
   # mutate(Xaxis = NA)
 unique_states <- states %>%
@@ -588,6 +594,7 @@ unique_states <- states %>%
 
 #Prepare counties data
 counties <- JHU[!(JHU$County_City == ""), ]
+counties[is.na(counties$Deaths),]$Deaths <- 0
 counties <-
   unite(
     counties,
@@ -605,12 +612,21 @@ counties <-
     remove = FALSE
   )
 counties <- counties %>%
-  mutate(Confirmed_scaling = NA) %>%
-  mutate(Deaths_scaling = NA)
+  mutate(Confirmed_scaling = NA_real_) %>%
+  mutate(Deaths_scaling = NA_real_)
   # mutate(Values = NA) %>%
   # mutate(Xaxis = NA)
 unique_counties <- counties %>%
   distinct(Country_State, State_County)
+
+countries <- countries %>%
+  arrange(Country_Region, Last_Update)
+
+states <- states %>%
+  arrange(Country_State, Last_Update)
+
+counties <- counties %>%
+  arrange(Country_Region, State_County, Last_Update)
 
 #Calculating the doubling times for deaths and confirmed cases
 print("Calculating doubling times...")
