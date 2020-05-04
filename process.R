@@ -640,6 +640,14 @@ for (place in c(unique_countries,
   counties <- scaling(counties, place, "Confirmed", 2, "Confirmed_scaling")
 }
 
+countries[is.na(countries$Deaths_scaling),]$Deaths_scaling <- 0
+states[is.na(states$Deaths_scaling),]$Deaths_scaling <- 0
+counties[is.na(counties$Deaths_scaling),]$Deaths_scaling <- 0
+
+countries[is.na(countries$Confirmed_scaling),]$Confirmed_scaling <- 0
+states[is.na(states$Confirmed_scaling),]$Confirmed_scaling <- 0
+counties[is.na(counties$Confirmed_scaling),]$Confirmed_scaling <- 0
+
 print("Writing CSV files...")
 write_csv(JHU,"jhu.csv")
 write_csv(countries,"countries.csv")
