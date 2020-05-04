@@ -26,7 +26,6 @@ while (theDate <= end)
           Province_State = "Province/State",
           Last_Update = "Last Update"
         )
-      #nextFile$Last_Update <- as.Date(nextFile$Last_Update, format = "%m/%d/%Y %H:%M")
     } else if (theDate <= as.Date("2020-01-30")) {
       nextFile <- nextFile %>% 
         rename(
@@ -34,7 +33,6 @@ while (theDate <= end)
           Province_State = "Province/State",
           Last_Update = "Last Update"
         )
-      #nextFile$Last_Update <- as.Date(nextFile$Last_Update, format = "%m/%d/%y %H:%M")
     } else if (theDate <= as.Date("2020-02-01")) {
       nextFile <- nextFile %>% 
         rename(
@@ -42,7 +40,6 @@ while (theDate <= end)
           Province_State = "Province/State",
           Last_Update = "Last Update"
         )
-      #nextFile$Last_Update <- as.Date(nextFile$Last_Update, format = "%m/%d/%Y %H:%M")
     } else if (theDate <= as.Date("2020-03-21")) {
       nextFile <- nextFile %>% 
         rename(
@@ -50,11 +47,6 @@ while (theDate <= end)
           Province_State = "Province/State",
           Last_Update = "Last Update"
         )
-      #nextFile$Last_Update <- as.Date(nextFile$Last_Update, format = "%Y-%m-%dT%H:%M:%S")
-    } else if (theDate <= as.Date("2020-03-22")) {
-      #nextFile$Last_Update <- as.Date(nextFile$Last_Update, format = "%m/%d/%y %H:%M")
-    } else {
-      #nextFile$Last_Update <- as.Date(nextFile$Last_Update, format = "%Y-%m-%d %H:%M:%S")
     }
     
     nextFile$Last_Update <- theDate
@@ -520,7 +512,6 @@ scaling <-
            input_column,
            scale_factor,
            output_column) {
-    #places_index <- (places[, 1] == place)
     places_index <- (places[[1]] == place)
     places_place <- places[places_index, ]
     
@@ -547,7 +538,6 @@ scaling <-
       }
     }
     places[places_index, output_column] <-
-      #places_place[, output_column]
       places_place[[output_column]]
     return(places)
   }
@@ -563,11 +553,13 @@ countries <-
   )
 countries <- merge(countries, pop)
 countries <- countries %>%
+  mutate(Confirmed_vs_population = NA_real_) %>%
+  mutate(Deaths_vs_population = NA_real_) %>%
   mutate(Confirmed_scaling = NA_real_) %>%
   mutate(Deaths_scaling = NA_real_)
-  # mutate(Values = NA) %>%
-  # mutate(Xaxis = NA)
 unique_countries <- unique(countries$Country_Region)
+countries$Confirmed_vs_population <- countries$Confirmed / countries$Population * 1000000
+countries$Deaths_vs_population <- countries$Deaths / countries$Population * 1000000
 
 #Prepare states data
 states <-
@@ -585,12 +577,14 @@ states <-
     remove = FALSE
   )
 states <- states %>%
+  # mutate(Confirmed_vs_population = NA_real_) %>%
+  # mutate(Deaths_vs_population = NA_real_) %>%
   mutate(Confirmed_scaling = NA_real_) %>%
   mutate(Deaths_scaling = NA_real_)
-  # mutate(Values = NA) %>%
-  # mutate(Xaxis = NA)
 unique_states <- states %>%
   distinct(Country_State)
+# states$Confirmed_vs_population <- states$Confirmed / states$Population * 1000000
+# states$Deaths_vs_population <- states$Deaths / states$Population * 1000000
 
 #Prepare counties data
 counties <- JHU[!(JHU$County_City == ""), ]
@@ -612,12 +606,14 @@ counties <-
     remove = FALSE
   )
 counties <- counties %>%
+  # mutate(Confirmed_vs_population = NA_real_) %>%
+  # mutate(Deaths_vs_population = NA_real_) %>%
   mutate(Confirmed_scaling = NA_real_) %>%
   mutate(Deaths_scaling = NA_real_)
-  # mutate(Values = NA) %>%
-  # mutate(Xaxis = NA)
 unique_counties <- counties %>%
   distinct(Country_State, State_County)
+# counties$Confirmed_vs_population <- counties$Confirmed / counties$Population * 1000000
+# counties$Deaths_vs_population <- counties$Deaths / counties$Population * 1000000
 
 countries <- countries %>%
   arrange(Country_Region, Last_Update)
@@ -638,7 +634,7 @@ for (place in c(unique_countries,
   countries <- scaling(countries, place, "Deaths", 2, "Deaths_scaling")
   states <- scaling(states, place, "Deaths", 2, "Deaths_scaling")
   counties <- scaling(counties, place, "Deaths", 2, "Deaths_scaling")
-  
+
   countries <- scaling(countries, place, "Confirmed", 2, "Confirmed_scaling")
   states <- scaling(states, place, "Confirmed", 2, "Confirmed_scaling")
   counties <- scaling(counties, place, "Confirmed", 2, "Confirmed_scaling")
