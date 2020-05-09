@@ -8,7 +8,6 @@ JHU <- data.frame()
 start <- as.Date("2020-01-20") #The first data file is actually 2020-01-22, but the first few import(myurl) sometimes fails.
 end   <- as.Date(Sys.Date())
 
-print(date)
 
 theDate <- start
 
